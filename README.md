@@ -14,7 +14,7 @@ An api for face detection
         -  generator
         -  storage
         -  get request
-    -  face recognition
+    -  face recognition post request
         -  api key validation
         -  img validation
         -  base64 decoding
