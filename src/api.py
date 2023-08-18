@@ -3,7 +3,9 @@ import pydantic
 
 class PostBody(pydantic.BaseModel):
     img_1: pydantic.Base64Str
+    img_1_metadata: tuple[tuple[int, int], str]
     img_2: pydantic.Base64Str
+    img_2_metadata: tuple[tuple[int, int], str]
     api_key: str
 
 app = FastAPI()
