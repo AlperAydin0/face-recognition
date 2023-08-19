@@ -21,3 +21,4 @@ An api for face detection
         -  face recognition
             -  face detection
             -  face recognition
+-  Face refactor face recognition
