@@ -22,3 +22,9 @@ An api for face detection
             -  face detection
             -  face recognition
 -  Face refactor face recognition
+
+
+Face detection model: RetinaFace
+Face recognition model: ArcFace
+Api: FastApi
+Similarity: Cosine similarity
