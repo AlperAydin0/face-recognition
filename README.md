@@ -25,6 +25,9 @@ An api for face detection
 
 
 Face detection model: RetinaFace
+
 Face recognition model: ArcFace
+
 Api: FastApi
+
 Similarity: Cosine similarity
