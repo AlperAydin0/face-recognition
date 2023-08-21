@@ -1,5 +1,5 @@
-# face-recognition
-An api for face detection
+# face-recognition-api
+An api for finding similarity between two faces
 ## DONE:
 -  Face recognition
     -  Face detection
