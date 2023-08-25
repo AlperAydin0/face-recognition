@@ -8,7 +8,6 @@ An api for finding similarity between two faces
     -  Cosine similarity
 -  Decoder
     -  Base64 decoder
-## TODO:
 -  Api
     -  api key
         -  generator
@@ -20,7 +19,9 @@ An api for finding similarity between two faces
         -  base64 decoding
         -  face recognition
             -  face detection
-            -  face recognition
+            - face recognition
+- Image selection for testing
+## TODO:
 -  Face refactor face recognition
 
 
