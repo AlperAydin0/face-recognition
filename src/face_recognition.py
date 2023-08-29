@@ -55,8 +55,8 @@ class RetinaFaceDetector(Detector):
 
     def detect(self, img: ndarray) -> list[Face] | None:
         res = self.detector.detect(img, input_size=self.input_size)
-        if res is None:
-            return
+        if res[0].shape[0] == 0:
+            return None
         return [Face(bbox[:-1], bbox[-1], kpss) for bbox, kpss in zip(res[0], res[1])] # type: ignore
 
 

@@ -25,10 +25,10 @@ An api for finding similarity between two faces
       - face recognition
 - Face refactor face recognition
 - Image selection for testing
+- FIX post request not working
 
 ## TODO:
 
-- FIX post request not working
 
 #
 Face detection model: RetinaFace\

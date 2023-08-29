@@ -3,7 +3,7 @@ from uuid import uuid4
 from hashlib import sha256
 from itertools import product
 
-from pydantic import BaseModel, Base64Bytes, validator, model_validator
+from pydantic import BaseModel, Base64Bytes, validator, model_validator, Base64Str
 from fastapi import FastAPI, HTTPException, Security, status
 from fastapi.security import APIKeyHeader
 
@@ -15,39 +15,13 @@ from face_recognition import (
     ArcFaceRecognizer
 )
 
+class Image(BaseModel):
+    img: Base64Bytes
+    shape: tuple[int, int, int]
 
-class PostBody(BaseModel):
-    img_1: Base64Bytes
-    img_1_shape: tuple[int, int, int]
-    img_2: Base64Bytes
-    img_2_shape: tuple[int, int, int]
 
-    # @validator('img_1', 'img_2', 'img_1_shape', 'img_2_shape')
-    # @classmethod
-    # def validate_not_empty(cls, value):
-    #     if len(value) == 0:
-    #         raise ValueError('image can\'t be empty.')
-
-    # @model_validator(mode='before')
-    # @classmethod
-    # def validate_not_same(cls, values):
-    #     img1 = values[0]
-    #     img2 = values[2]
-
-    #     if img1 == img2:
-    #         raise ValueError('Images can not be same.')
-
-    @validator('img_1_shape', 'img_2_shape')
-    @classmethod
-    def validate_shape(cls, value):
-        if len(value) != 3:
-            raise ValueError('Incorrect image size.')
-
-        width, height, chanels = value[0], value[1], value[2]
-        if not isinstance(width, int) or not isinstance(height, int) or not isinstance(chanels, int):
-            raise TypeError(
-                'width, height and chanels of image needs to be integer.')
-
+def scale_range_between_1_0(val: float, max_:float, min_:float) -> float:
+    return (val - min_) / (max_ - min_)
 
 def generate_api_key() -> str:
     '''Generates and stores(Hashed) api key
@@ -81,7 +55,6 @@ api_key_header = APIKeyHeader(name='api-key')
 def validate_api_key(api_key_header: str = Security(api_key_header)) -> str:
     with sqlite3.connect('data/api_key_db.db') as conn:
         cur = conn.cursor()
-        print(f'{api_key_header=}')
         if cur.execute('SELECT api_key FROM api_keys WHERE api_key = ?',
                        [sha256(bytes.fromhex(api_key_header)).hexdigest()]).fetchone() is None:
             raise HTTPException(
@@ -109,16 +82,22 @@ async def test_auth(api_key: str = Security(validate_api_key)) -> str:
     return 'valid api key'
 
 
-@app.post('/face-similarity/')
-async def face_similarity(post: PostBody,api_key: str = Security(validate_api_key)):
-    img1 = base64_decoder(
-        post.img_1,
-        post.img_1_shape
-    )
-    img2 = base64_decoder(
-        post.img_2,
-        post.img_2_shape
-    )
+@app.post('/face-similarity/', )
+def face_similarity(
+    image_1: Image,
+    image_2: Image,
+    api_key: str = Security(validate_api_key)
+):
+    if image_1.img == image_2.img:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Image strings can not be same.'
+        )
+
+    # print(f'{image_1.img=}')
+    # print(f'{image_2.img=}')
+    img1 = base64_decoder(image_1.img, image_1.shape)
+    img2 = base64_decoder(image_2.img, image_2.shape)
 
     detector = RetinaFaceDetector()
 
@@ -140,6 +119,8 @@ async def face_similarity(post: PostBody,api_key: str = Security(validate_api_ke
     embeddings_1 = [recognizer.get_embedding(img1, face) for face in faces1]
     embeddings_2 = [recognizer.get_embedding(img2, face) for face in faces2]
 
+    similarity_range = {'high': 1, 'low': -1}
+
     max_sim = None
     for emb1, emb2 in product(embeddings_1, embeddings_2):
 
@@ -153,12 +134,12 @@ async def face_similarity(post: PostBody,api_key: str = Security(validate_api_ke
         if similar:
             return {
                 'is_success': True,
-                'is_similar': similar,
-                'similarity_score': similarity
+                'is_similar': bool(similar),
+                'similarity_score': scale_range_between_1_0(float(similarity), similarity_range['high'], similarity_range['low'])
             }
 
     return {
         'is_success': True,
         'is_similar': False,
-        'similarity_score': max_sim
+        'similarity_score': scale_range_between_1_0(float(max_sim), similarity_range['high'], similarity_range['low'])
     }
