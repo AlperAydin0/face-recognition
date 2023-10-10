@@ -1,0 +1,18 @@
+{
+    "image_1": {
+      "img": "string",
+      "shape": [
+        null,
+        null,
+        null
+      ]
+    },
+    "image_2": {
+      "img": "string",
+      "shape": [
+        null,
+        null,
+        null
+      ]
+    }
+  }
