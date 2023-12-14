@@ -7,9 +7,10 @@ import cv2
 import numpy as np
 from numpy import ndarray
 from insightface.model_zoo import RetinaFace, ArcFaceONNX
+import onnxruntime
 
-ARCFACE_PATH = '/home/alper/.insightface/models/buffalo_l/w600k_r50.onnx'
-RETINAFACE_PATH = '/home/alper/.insightface/models/buffalo_l/det_10g.onnx'
+ARCFACE_PATH = '~/.insightface/models/buffalo_l/w600k_r50.onnx'
+RETINAFACE_PATH = '~/.insightface/models/buffalo_l/det_10g.onnx'
 
 # def insightface_detector_factory(name: str = 'buffalo_l',
 #                                  root: str = '~/.insightface',
@@ -51,7 +52,7 @@ class RetinaFaceDetector(Detector):
                  retinaface_path: Path | str = RETINAFACE_PATH,
                  input_size: tuple[int, int] = (640, 640)) -> None:
         self.input_size = input_size
-        self.detector = RetinaFace(retinaface_path)
+        self.detector = RetinaFace(retinaface_path, onnxruntime.InferenceSession(retinaface_path, providers=['CPUExecutionProvider']))
 
     def detect(self, img: ndarray) -> list[Face] | None:
         res = self.detector.detect(img, input_size=self.input_size)
@@ -61,14 +62,13 @@ class RetinaFaceDetector(Detector):
 
 
 class Recognizer(Protocol):
-    def get_embedding(self, img: ndarray, face: Face) -> ndarray:
-        ...
+    ...
 
 
 class ArcFaceRecognizer(Recognizer):
     def __init__(self,
                  arcface_path: Path | str = ARCFACE_PATH) -> None:
-        self.recognizer = ArcFaceONNX(arcface_path)
+        self.recognizer = ArcFaceONNX(arcface_path, onnxruntime.InferenceSession(arcface_path, providers=['CPUExecutionProvider']))
 
     def get_embedding(self, img: ndarray, face: Face) -> ndarray:
         return self.recognizer.get(img, face)
@@ -101,3 +101,48 @@ def get_images(max_image_amount=1_000) -> list[np.ndarray]:
         next_path = next(gen)
         result.append(cv2.imread(next_path.resolve().name))
     return result
+
+if __name__=="__main__":
+    a = Path(__file__).parent.parent/'data/images/andre1.jpeg'
+    b = Path(__file__).parent.parent/'data/images/andre2.jpeg'
+    c = Path(__file__).parent.parent/'data/images/andre3.jpeg'
+    i1 = cv2.imread(a.as_posix())
+    i2 = cv2.imread(b.as_posix())
+    i3 = cv2.imread(c.as_posix())
+    from matplotlib import pyplot as plt
+    plt.subplot(2,3,1)
+    plt.imshow(cv2.cvtColor(i1, cv2.COLOR_BGRA2RGB))
+    plt.subplot(2,3,2)
+    plt.imshow(cv2.cvtColor(i2, cv2.COLOR_BGR2RGB))
+    plt.subplot(2,3,3)
+    plt.imshow(cv2.cvtColor(i3, cv2.COLOR_BGR2RGB))
+    
+    detector = RetinaFaceDetector()
+    f1 = detector.detect(i1)
+    f2 = detector.detect(i2)
+    f3 = detector.detect(i3)
+    print(f1)
+    print(f2)
+    print(f3)
+    r = ArcFaceRecognizer()
+    if(f1 is not None):
+        for f in f1:
+            print(r.get_embedding(i1, f)[:10])
+            bbox = list(map(int, f.bbox))
+            
+            i1 = cv2.rectangle(i1, bbox[:2], bbox[2:], (0,0,255), 3)
+    if(f2 is not None):
+        for f in f2:
+            bbox = list(map(int, f.bbox))
+            i2=cv2.rectangle(i2, bbox[:2], bbox[2:], (0,0,255), 3)
+    if(f3 is not None):
+        for f in f3:
+            bbox = list(map(int, f.bbox))
+            i3=cv2.rectangle(i3, bbox[:2], bbox[2:], (0,0,255), 3)
+    plt.subplot(2,3,4)
+    plt.imshow(cv2.cvtColor(i1, cv2.COLOR_BGR2RGB))
+    plt.subplot(2,3,5)
+    plt.imshow(cv2.cvtColor(i2, cv2.COLOR_BGR2RGB))
+    plt.subplot(2,3,6)
+    plt.imshow(cv2.cvtColor(i3, cv2.COLOR_BGR2RGB))
+    plt.show()
