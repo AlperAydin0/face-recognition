@@ -12,13 +12,11 @@ def encode_image_to_base64(file_path):
         return None
 
 def test_api():
-    api_url = "http://127.0.0.1:8000/process-images"  # Replace with your FastAPI endpoint URL
+    api_url = "http://127.0.0.1:8000/face-similarity"
 
-    # Replace these paths with the actual paths to your image files
-    image_path1 = "data/my_face/1.jpg"
-    image_path2 = "data/my_face/2.jpg"
+    image_path1 = "data/images/3.jpg"
+    image_path2 = "data/images/4.jpg"
 
-    # Encode images to base64
     encoded_image1 = encode_image_to_base64(image_path1)
     encoded_image2 = encode_image_to_base64(image_path2)
 
@@ -26,14 +24,13 @@ def test_api():
         print("Error encoding images.")
         return
 
-    # Prepare the request payload
     payload = {
         "image1": encoded_image1,
         "image2": encoded_image2
     }
 
     # Make the POST request to the FastAPI endpoint
-    response = requests.post(api_url, json=payload)
+    response = requests.post(api_url, json=payload, headers={'api-key':"88f407bcdfc941c7b2e9aff1716e89b9"})
     # Print the response
     print("Response Status Code:", response.status_code)
     print("Response Content:", response.json())
