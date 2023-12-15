@@ -9,8 +9,8 @@ from numpy import ndarray
 from insightface.model_zoo import RetinaFace, ArcFaceONNX
 import onnxruntime
 
-ARCFACE_PATH = '~/.insightface/models/buffalo_l/w600k_r50.onnx'
-RETINAFACE_PATH = '~/.insightface/models/buffalo_l/det_10g.onnx'
+ARCFACE_PATH = '/home/alper/.insightface/models/buffalo_l/w600k_r50.onnx'
+RETINAFACE_PATH = '/home/alper/.insightface/models/buffalo_l/det_10g.onnx'
 
 # def insightface_detector_factory(name: str = 'buffalo_l',
 #                                  root: str = '~/.insightface',
